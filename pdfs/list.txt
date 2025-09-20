@@ -1,0 +1,38 @@
+from github import Github
+import requests
+
+# -------------------------------
+# 1. GitHub Authentication
+# -------------------------------
+TOKEN = "YOUR_PERSONAL_ACCESS_TOKEN"
+REPO_NAME = "username/repo-name"
+FILE_PATH_IN_REPO = "pdfs/sample.pdf"  # path inside repo
+
+g = Github(TOKEN)
+repo = g.get_repo(REPO_NAME)
+
+# -------------------------------
+# 2. Get file info
+# -------------------------------
+try:
+    file = repo.get_contents(FILE_PATH_IN_REPO)
+except:
+    print("File not found in repo")
+    exit()
+
+# -------------------------------
+# 3. Download the PDF
+# -------------------------------
+download_url = file.download_url  # raw GitHub URL
+r = requests.get(download_url)
+
+local_file_name = FILE_PATH_IN_REPO.split("/")[-1]
+with open(local_file_name, "wb") as f:
+    f.write(r.content)
+print(f"Downloaded {local_file_name} successfully!")
+
+# -------------------------------
+# 4. Delete the file from GitHub
+# -------------------------------
+repo.delete_file(file.path, "Deleting after download", file.sha)
+print(f"Deleted {FILE_PATH_IN_REPO} from GitHub")
